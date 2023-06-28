@@ -17,9 +17,9 @@ function Observer(data_instance) {
             configurable: true,
             get() {
                 console.log(`访问了属性${key} 值为${value}`);
-                console.log(Dependency.temp);
+                // console.log(Dependency.temp);
                 Dependency.temp && dependency.addSub(Dependency.temp);
-                if (!Dependency.temp) {
+                if (Dependency.temp) {
                     console.log(Dependency.temp);
                 }
                 return value
@@ -54,7 +54,9 @@ function Compile(element, vm) {
             const result_regx = pattern.exec(node.nodeValue)
             if (result_regx) {
                 const arr = result_regx[1].split('.');
+                //获取子属性的值
                 const value = arr.reduce((total, current) => total[current], vm.$data)
+                //替换当前节点值的内容
                 node.nodeValue = xxx.replace(pattern, value)
                 new Watcher(vm, result_regx[1], newValue => {
                     node.nodeValue = xxx.replace(pattern, value)
@@ -62,6 +64,30 @@ function Compile(element, vm) {
                 })
             }
             return
+        }
+        if (node.nodeType === 1 && node.nodeName == 'INPUT') {
+            const attr = Array.from(node.attributes);
+            attr.forEach(i => {
+                if (i.nodeName === 'v-model') {
+                    const value = i.nodeValue.split('.').reduce(
+                        (total, current) => total[current], vm.$data
+                    )
+                    console.log(value);
+                    node.value = value
+                    new Watcher(vm, i.nodeValue, newValue => {
+                        node.value = newValue
+                    })
+                    node.addEventListener('input', e => {
+                        const arr1 = i.nodeValue.split('.');
+                        const arr2 = arr1.slice(0, arr1.length - 1);
+                        const final = arr2.reduce(
+                            (total, current) => total[current], vm.$data
+                        )
+                        final[arr1[arr1.length - 1]] = e.target.value
+                    })
+                }
+            })
+
         }
         node.childNodes.forEach(child => fragment_compile(child));
 
