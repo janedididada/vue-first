@@ -63,7 +63,6 @@ function Compile(element, vm) {
 
                 })
             }
-            return
         }
         if (node.nodeType === 1 && node.nodeName == 'INPUT') {
             const attr = Array.from(node.attributes);
